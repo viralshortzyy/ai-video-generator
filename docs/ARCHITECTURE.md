@@ -52,6 +52,17 @@ plan + future Stripe customer id. `generation_events` is the audit trail.
 
 ## Key design decisions
 
+- **Free-first provider selection.** `VIDEO_PROVIDER=mock|free|runway`
+  (see `src/lib/config.ts`). `mock` is the default and always $0; `free`
+  serves real AI video through a `FreeBackend` (local GPU or Gradio Space)
+  and *never* calls paid APIs; `runway` is an optional paid provider that is
+  only registered when explicitly selected. Legacy `MOCK_VIDEO_MODE` is
+  preserved as a fallback when `VIDEO_PROVIDER` is unset.
+- **Honest unavailability.** If `VIDEO_PROVIDER=free` but no free backend can
+  serve (no GPU, no `FREE_GRADIO_URL`), the provider advertises zero models
+  and returns a setup notice through `/api/models`; generations fail with a
+  clear `FreeUnavailableError`. Mock output is labeled "Demo — simulated,
+  not AI-generated" everywhere — never presented as AI.
 - **Provider abstraction, not integration.** Runway (`src/lib/providers/runway.ts`)
   was added as one class implementing `VideoProvider` + registry wiring — no
   changes to the UI, API routes, or orchestration flow. Adding Kling/Luma is

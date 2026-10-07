@@ -55,6 +55,12 @@ export interface ProviderMetadata {
   description?: string;
   models: ProviderModelInfo[];
   supportsCancel: boolean;
+  /**
+   * Optional human-readable notice, e.g. why a provider currently offers no
+   * models ("free backend not configured"). Surfaced in the UI — never an
+   * error, just honesty.
+   */
+  notice?: string;
 }
 
 export interface VideoProvider {

@@ -132,14 +132,14 @@ export class MockVideoProvider implements VideoProvider {
   metadata(): ProviderMetadata {
     return {
       id: "mock",
-      displayName: "FrameForge Mock",
-      description: "Local simulated renderer — no API calls, no cost.",
+      displayName: "FrameForge Mock (Demo)",
+      description: "Simulated demo renderer — procedural animation, NOT AI-generated. No API calls, no cost.",
       supportsCancel: true,
       models: [
         {
           id: "forge-mock-v1",
-          displayName: "Forge Mock v1",
-          description: "Fast mock renderer for testing the full pipeline.",
+          displayName: "Forge Mock v1 (Demo — simulated)",
+          description: "Simulated video for testing the pipeline. Not AI-generated.",
           capabilities: {
             durations: [2, 4, 6, 8, 10],
             aspectRatios: ["16:9", "9:16", "1:1"],
@@ -150,8 +150,8 @@ export class MockVideoProvider implements VideoProvider {
         },
         {
           id: "forge-mock-cinema",
-          displayName: "Forge Mock Cinema",
-          description: "Slower, more dramatic mock pipeline.",
+          displayName: "Forge Mock Cinema (Demo — simulated)",
+          description: "Simulated video, slower pacing. Not AI-generated.",
           capabilities: {
             durations: [4, 6, 8, 10],
             aspectRatios: ["16:9", "9:16", "1:1"],

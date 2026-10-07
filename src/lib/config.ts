@@ -19,9 +19,43 @@ function str(name: string, fallback = ""): string {
   return process.env[name] ?? fallback;
 }
 
+export type ProviderMode = "mock" | "free" | "runway";
+
+/**
+ * Which video provider family to use. Explicit VIDEO_PROVIDER wins;
+ * otherwise we preserve the legacy MOCK_VIDEO_MODE behavior.
+ * Default is "mock" — always free, never a paid call by surprise.
+ */
+function resolveProviderMode(): ProviderMode {
+  const explicit = str("VIDEO_PROVIDER", "").toLowerCase();
+  if (explicit === "mock" || explicit === "free" || explicit === "runway") return explicit;
+  if (!bool("MOCK_VIDEO_MODE", true)) return "runway";
+  return "mock";
+}
+
 export const config = {
   mockVideoMode: bool("MOCK_VIDEO_MODE", true),
   mockClaude: bool("MOCK_CLAUDE", true),
+
+  // --- Provider selection (free-first) -----------------------------------
+  // "mock"   = simulated demo renderer (default, always free)
+  // "free"   = real free/open-source backend (see FREE_BACKEND)
+  // "runway" = paid Runway API (only when explicitly selected + key set)
+  providerMode: resolveProviderMode(),
+
+  // --- Free backend -------------------------------------------------------
+  // "auto"   = try local GPU, then Gradio Space
+  // "local"  = self-hosted model on this machine's GPU (needs setup)
+  // "gradio" = Hugging Face Gradio Space (FREE_GRADIO_URL, your own or public)
+  freeBackend: str("FREE_BACKEND", "auto"),
+  freeGradioUrl: str("FREE_GRADIO_URL", "").replace(/\/$/, ""),
+  freeGradioEndpoint: str("FREE_GRADIO_ENDPOINT", "predict"),
+
+  // --- Prompt engine -------------------------------------------------------
+  // "local"  = free on-device heuristics (default when no Claude key)
+  // "claude" = Anthropic API (requires ANTHROPIC_API_KEY; never without it)
+  // ""       = auto (Claude only if key present and MOCK_CLAUDE=false)
+  promptEngine: str("PROMPT_ENGINE", "").toLowerCase(),
 
   anthropicApiKey: str("ANTHROPIC_API_KEY"),
   claudeModel: str("CLAUDE_MODEL", "claude-sonnet-4-5"),

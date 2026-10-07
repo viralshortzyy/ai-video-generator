@@ -8,7 +8,7 @@ import { config } from "../config";
 import { logger } from "../logger";
 import type { PromptEngine, StructureInput, StructuredPrompt } from "./types";
 import { composeDirectorText, emptyStructuredPrompt } from "./types";
-import { MockPromptEngine } from "./mockEngine";
+import { LocalPromptEngine } from "./localEngine";
 
 const SYSTEM_PROMPT = `You are the prompt director for FrameForge, an AI video-generation studio.
 Given a user's raw video idea, expand it into a precise cinematic shot plan.
@@ -59,7 +59,7 @@ function sanitize(input: StructureInput, parsed: any): Omit<StructuredPrompt, "d
 export class ClaudePromptEngine implements PromptEngine {
   readonly name = "claude-prompt-engine";
   private client: Anthropic;
-  private fallback = new MockPromptEngine();
+  private fallback = new LocalPromptEngine();
 
   constructor(apiKey: string = config.anthropicApiKey) {
     this.client = new Anthropic({ apiKey });

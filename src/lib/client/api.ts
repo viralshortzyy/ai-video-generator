@@ -36,7 +36,7 @@ export interface CreateGenerationInput {
 
 export const api = {
   me: () => request<{ user: User; balance: number; plan: Plan }>("/api/me"),
-  models: () => request<{ models: ModelInfo[] }>("/api/models"),
+  models: () => request<{ models: ModelInfo[]; notices?: string[] }>("/api/models"),
 
   createGeneration: (input: CreateGenerationInput) =>
     request<{ generation: Generation; balance: number }>("/api/generations", {

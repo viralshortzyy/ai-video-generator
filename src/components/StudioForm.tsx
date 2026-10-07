@@ -42,12 +42,14 @@ export function StudioForm({
   models,
   projects,
   initialPrompt,
+  notices,
   onCreated,
   onBalanceChange,
 }: {
   models: ModelInfo[];
   projects: Project[];
   initialPrompt: string;
+  notices?: string[];
   onCreated: (g: Generation) => void;
   onBalanceChange: (b: number) => void;
 }) {
@@ -133,16 +135,21 @@ export function StudioForm({
         <h2 className="font-display text-lg font-semibold text-forge-cream">New generation</h2>
         {model?.isMock && (
           <span className="rounded-full border border-forge-amber/40 bg-forge-amber/10 px-2.5 py-1 text-[11px] font-medium text-forge-amber">
-            Mock mode · free testing
+            Demo mode · simulated, not AI-generated
           </span>
         )}
       </div>
       <p className="mb-4 text-sm text-forge-mute">Describe the shot. FrameForge directs the rest.</p>
 
-      {models.length === 0 && (
+      {(notices ?? []).map((n, i) => (
+        <p key={i} className="mb-4 rounded-lg border border-forge-amber/30 bg-forge-amber/10 px-3 py-2 text-sm text-forge-amber">
+          {n}
+        </p>
+      ))}
+
+      {models.length === 0 && (notices ?? []).length === 0 && (
         <p className="mb-4 rounded-lg border border-forge-amber/30 bg-forge-amber/10 px-3 py-2 text-sm text-forge-amber">
-          No video models are available. In mock mode this never happens — if you turned off
-          MOCK_VIDEO_MODE, configure a provider API key (e.g. RUNWAY_API_KEY) and restart.
+          No video models are available. Check your VIDEO_PROVIDER configuration and restart.
         </p>
       )}
 

@@ -25,6 +25,7 @@ function StudioPageInner() {
   const [user, setUser] = useState<User | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
   const [models, setModels] = useState<ModelInfo[]>([]);
+  const [notices, setNotices] = useState<string[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [active, setActive] = useState<Generation | null>(null);
   const [recent, setRecent] = useState<Generation[]>([]);
@@ -45,6 +46,7 @@ function StudioPageInner() {
         setUser(me.user);
         setBalance(me.balance);
         setModels(ms.models);
+        setNotices(ms.notices ?? []);
         setProjects(ps.projects);
         setRecent(gens.items);
         const running = gens.items.find((g) => !TERMINAL.includes(g.status));
@@ -121,6 +123,7 @@ function StudioPageInner() {
               models={models}
               projects={projects}
               initialPrompt={initialPrompt}
+              notices={notices}
               onCreated={handleCreated}
               onBalanceChange={setBalance}
             />
