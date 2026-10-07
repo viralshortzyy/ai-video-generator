@@ -69,8 +69,25 @@ function seed(db: DatabaseSync) {
         sort_order: 20,
       },
     ];
+    // The Runway model row mirrors the live registry entry (see
+    // src/lib/providers/runway.ts). The /api/models catalog is driven by the
+    // registry, not this table — this row exists for admin visibility.
+    models.push({
+      id: "runway-gen4.5",
+      provider_id: "runway",
+      display_name: "Runway Gen 4.5",
+      description: "Real AI video generation via the Runway API (uses Runway credits).",
+      capabilities: {
+        durations: [2, 4, 5, 6, 8, 10],
+        aspectRatios: ["16:9", "9:16"],
+        qualities: ["standard", "high"],
+        supportsImageToVideo: true,
+        maxScenes: 1,
+      },
+      sort_order: 30,
+    });
     const stmt = db.prepare(
-      "INSERT INTO video_models (id, provider_id, display_name, description, capabilities, enabled, is_mock, sort_order) VALUES (?, ?, ?, ?, ?, 1, 1, ?)"
+      "INSERT INTO video_models (id, provider_id, display_name, description, capabilities, enabled, is_mock, sort_order) VALUES (?, ?, ?, ?, ?, 1, ?, ?)"
     );
     for (const m of models) {
       stmt.run(
@@ -79,6 +96,7 @@ function seed(db: DatabaseSync) {
         m.display_name,
         m.description,
         JSON.stringify(m.capabilities),
+        m.provider_id === "mock" ? 1 : 0,
         m.sort_order
       );
     }

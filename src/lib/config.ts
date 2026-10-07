@@ -26,6 +26,11 @@ export const config = {
   anthropicApiKey: str("ANTHROPIC_API_KEY"),
   claudeModel: str("CLAUDE_MODEL", "claude-sonnet-4-5"),
 
+  // --- Runway (real video generation; server-side only) -------------------
+  runwayApiKey: str("RUNWAY_API_KEY"),
+  runwayVideoModel: str("RUNWAY_VIDEO_MODEL", "gen4.5"),
+  runwayBaseUrl: str("RUNWAY_BASE_URL", "https://api.dev.runwayml.com"),
+
   databasePath: str("DATABASE_PATH", "./data/frameforge.db"),
   storageDir: str("STORAGE_DIR", "./data/media"),
 

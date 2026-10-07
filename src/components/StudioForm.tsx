@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Generation, Project } from "@/lib/types";
+import type { AspectRatio, Generation, Project, VideoQuality } from "@/lib/types";
 import { api, previewCost, type ModelInfo } from "@/lib/client/api";
 
 function Segmented<T extends string | number>({
@@ -54,8 +54,8 @@ export function StudioForm({
   const [prompt, setPrompt] = useState(initialPrompt);
   const [modelId, setModelId] = useState(models[0]?.id ?? "");
   const [durationSec, setDurationSec] = useState(8);
-  const [aspectRatio, setAspectRatio] = useState("16:9");
-  const [quality, setQuality] = useState("standard");
+  const [aspectRatio, setAspectRatio] = useState<AspectRatio>("16:9");
+  const [quality, setQuality] = useState<VideoQuality>("standard");
   const [negativePrompt, setNegativePrompt] = useState("");
   const [showNegative, setShowNegative] = useState(false);
   const [projectId, setProjectId] = useState("");
@@ -68,10 +68,22 @@ export function StudioForm({
   const caps = model?.capabilities;
   const cost = previewCost(durationSec, quality);
 
+  // Keep selections valid when the model changes.
+  function applyModel(id: string) {
+    setModelId(id);
+    const m = models.find((x) => x.id === id);
+    const c = m?.capabilities;
+    if (c) {
+      if (!c.durations.includes(durationSec)) setDurationSec(c.durations[0]);
+      if (!c.aspectRatios.includes(aspectRatio)) setAspectRatio(c.aspectRatios[0]);
+      if (!c.qualities.includes(quality)) setQuality(c.qualities[0]);
+    }
+  }
+
   // Keep duration valid when the model changes.
   const durations = (caps?.durations ?? [2, 4, 6, 8, 10]).map((d) => ({ value: d, label: `${d}s` }));
-  const aspects = (caps?.aspectRatios ?? ["16:9", "9:16", "1:1"]).map((a) => ({ value: a, label: a }));
-  const qualities = (caps?.qualities ?? ["draft", "standard", "high"]).map((q) => ({ value: q, label: q[0].toUpperCase() + q.slice(1) }));
+  const aspects = (caps?.aspectRatios ?? (["16:9", "9:16", "1:1"] as AspectRatio[])).map((a) => ({ value: a, label: a }));
+  const qualities = (caps?.qualities ?? (["draft", "standard", "high"] as VideoQuality[])).map((q) => ({ value: q, label: q[0].toUpperCase() + q.slice(1) }));
 
   async function handleImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -127,6 +139,13 @@ export function StudioForm({
       </div>
       <p className="mb-4 text-sm text-forge-mute">Describe the shot. FrameForge directs the rest.</p>
 
+      {models.length === 0 && (
+        <p className="mb-4 rounded-lg border border-forge-amber/30 bg-forge-amber/10 px-3 py-2 text-sm text-forge-amber">
+          No video models are available. In mock mode this never happens — if you turned off
+          MOCK_VIDEO_MODE, configure a provider API key (e.g. RUNWAY_API_KEY) and restart.
+        </p>
+      )}
+
       <textarea
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
@@ -140,12 +159,7 @@ export function StudioForm({
           <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-forge-mute">Model</p>
           <select
             value={modelId}
-            onChange={(e) => {
-              setModelId(e.target.value);
-              const m = models.find((x) => x.id === e.target.value);
-              const ds = m?.capabilities.durations ?? [8];
-              if (!ds.includes(durationSec)) setDurationSec(ds[0]);
-            }}
+            onChange={(e) => applyModel(e.target.value)}
             className="w-full rounded-lg border border-forge-line bg-forge-panel2 px-3 py-2 text-sm text-forge-cream focus:border-forge-amber/60 focus:outline-none"
           >
             {models.map((m) => (

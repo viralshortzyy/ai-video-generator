@@ -8,21 +8,34 @@ import { config } from "../config";
 import { logger } from "../logger";
 import type { VideoProvider, ProviderModelInfo } from "./types";
 import { MockVideoProvider } from "./mockProvider";
+import { RunwayProvider } from "./runway";
 import { RealProviderStub } from "./realStub";
 
 let cached: VideoProvider[] | null = null;
 
 function buildProviders(): VideoProvider[] {
+  // Mock mode is untouched: local simulation, zero cost, always available.
   if (config.mockVideoMode) {
     logger.info("MOCK_VIDEO_MODE=true — only mock providers registered");
     return [new MockVideoProvider()];
   }
-  // Real mode: register implemented providers here. Stubs document the seam.
-  return [
-    new RealProviderStub("runway", "Runway", "RUNWAY_API_KEY"),
-    new RealProviderStub("kling", "Kling", "KLING_API_KEY"),
-    new RealProviderStub("luma", "Luma", "LUMA_API_KEY"),
-  ];
+  // Real mode: register configured providers; stubs document the seams.
+  const providers: VideoProvider[] = [];
+  if (config.runwayApiKey) {
+    providers.push(
+      new RunwayProvider({
+        apiKey: config.runwayApiKey,
+        modelId: config.runwayVideoModel,
+        baseUrl: config.runwayBaseUrl,
+      })
+    );
+    logger.info("Runway provider registered", { model: config.runwayVideoModel });
+  } else {
+    providers.push(new RealProviderStub("runway", "Runway", "RUNWAY_API_KEY"));
+  }
+  providers.push(new RealProviderStub("kling", "Kling", "KLING_API_KEY"));
+  providers.push(new RealProviderStub("luma", "Luma", "LUMA_API_KEY"));
+  return providers;
 }
 
 export function listProviders(): VideoProvider[] {

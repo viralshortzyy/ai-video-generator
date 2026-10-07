@@ -16,6 +16,12 @@ export interface ProviderGenerationRequest {
   quality: VideoQuality;
   negativePrompt?: string;
   referenceImageUrl?: string;
+  /**
+   * Optional data-URI of the reference image (populated server-side by the
+   * orchestration service). Providers that support image-to-video can send
+   * this directly without needing fetch access to our media URLs.
+   */
+  referenceImageDataUri?: string;
 }
 
 export interface ProviderStatusResult {

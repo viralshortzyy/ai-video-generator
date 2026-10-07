@@ -34,9 +34,9 @@ worker (BullMQ, Inngest, or a cron sweep) — the function itself doesn't change
 | `src/lib/config.ts` | Typed env config — the only place `process.env` is read |
 | `src/lib/db/` | SQLite client (auto-migrate + seed), typed repositories (all user-scoped) |
 | `src/lib/prompt/` | `PromptEngine` interface; Claude + mock implementations |
-| `src/lib/providers/` | `VideoProvider` interface; mock renderer; real-provider stubs; registry |
+| `src/lib/providers/` | `VideoProvider` interface; mock renderer; **Runway provider**; stubs; registry |
 | `src/lib/storage/` | `StorageProvider` interface; local-disk MVP |
-| `src/lib/generations/service.ts` | Orchestration: credits → prompt → dispatch → sync → refund |
+| `src/lib/generations/service.ts` | Orchestration: credits → prompt → dispatch → sync → remote-output persistence → refund |
 | `src/lib/credits.ts` | Ledger-based credit economy |
 | `src/lib/billing/stripe.ts` | Plans + `BillingProvider` seam (Stripe not required) |
 | `src/lib/admin/sheetsLog.ts` | Optional Sheets logging — never on the critical path |
@@ -52,12 +52,24 @@ plan + future Stripe customer id. `generation_events` is the audit trail.
 
 ## Key design decisions
 
-- **Provider abstraction, not integration.** Adding Runway/Kling/Luma = one new
-  class implementing `VideoProvider` + one line in `registry.ts` + a
-  `video_models` seed row. API keys live in env, never in client code.
+- **Provider abstraction, not integration.** Runway (`src/lib/providers/runway.ts`)
+  was added as one class implementing `VideoProvider` + registry wiring — no
+  changes to the UI, API routes, or orchestration flow. Adding Kling/Luma is
+  the same shape. API keys live in env, never in client code.
+- **The live model catalog is the registry.** `/api/models` serves provider
+  metadata directly, so the UI can never offer a model that can't dispatch.
+  The `video_models` DB table is an admin/audit copy.
 - **Mock mode is a first-class provider**, not a hack: it implements the same
   interface, honors the same timeline semantics, and renders a real MP4 via
-  ffmpeg so the UI exercises the genuine completed path.
+  ffmpeg so the UI exercises the genuine completed path. `MOCK_VIDEO_MODE=true`
+  registers only the mock provider; `false` + `RUNWAY_API_KEY` registers Runway.
+- **Expiring provider outputs are persisted.** Runway's output URLs die in
+  24–48h, so on completion the service downloads the video into our own
+  `StorageProvider` (and extracts a thumbnail) before marking the generation
+  complete. No cloud storage is forced into the request path.
+- **Cost safety by construction.** Generation creation is never auto-retried
+  (each POST spends credits); only the safe GET status poll repeats, throttled
+  to ≥5s per task per Runway's guidance.
 - **Credits are ledger-based.** Balance is derived, never stored — no drift.
 - **Sheets/Canva/Stripe are seams, not dependencies.** Each is an interface
   with a disabled default; the app is fully functional without them.
