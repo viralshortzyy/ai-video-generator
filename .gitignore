@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+
+# database (local dev)
+data/*.db
+data/*.db-*
+data/media/
+
+# generated sample videos (runtime artifacts)
+public/samples/
+
+# env
+.env
+.env*.local
+
+# logs
+*.log
+npm-debug.log*
+
+# system
+.DS_Store
