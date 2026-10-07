@@ -32,10 +32,17 @@ function buildProviders(): VideoProvider[] {
     return [new FreeVideoProvider()];
   }
 
-  // Paid mode: Runway when explicitly selected and configured.
+  // Paid mode: Runway ONLY when explicitly selected, paid providers allowed,
+  // and the key is configured. Otherwise a stub explains exactly why.
   // (Legacy MOCK_VIDEO_MODE=false resolves here too.)
   const providers: VideoProvider[] = [];
-  if (config.runwayApiKey) {
+  if (!config.allowPaidProviders) {
+    const reason =
+      "Paid providers are disabled (ALLOW_PAID_PROVIDERS=false). " +
+      "No paid API will be called. Set ALLOW_PAID_PROVIDERS=true to enable Runway deliberately.";
+    logger.warn(reason);
+    providers.push(new RealProviderStub("runway", "Runway", "RUNWAY_API_KEY", reason));
+  } else if (config.runwayApiKey) {
     providers.push(
       new RunwayProvider({
         apiKey: config.runwayApiKey,

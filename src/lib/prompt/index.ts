@@ -1,8 +1,11 @@
 // ── Prompt engine selector (free-first) ─────────────────────────────────
 // PROMPT_ENGINE=local  → always the free local engine
-// PROMPT_ENGINE=claude → Anthropic API (requires ANTHROPIC_API_KEY; never without it)
-// unset                → Claude only when explicitly configured (MOCK_CLAUDE=false + key),
-//                        otherwise the free local engine. No paid call ever happens silently.
+// PROMPT_ENGINE=claude → Anthropic API — requires ALL of:
+//                        ALLOW_PAID_PROVIDERS=true, ANTHROPIC_API_KEY set.
+//                        Never called without explicit opt-in.
+// unset                → Claude only when explicitly configured
+//                        (ALLOW_PAID_PROVIDERS=true, MOCK_CLAUDE=false, key set),
+//                        otherwise the free local engine.
 
 import { config } from "../config";
 import { logger } from "../logger";
@@ -12,6 +15,10 @@ import { ClaudePromptEngine } from "./claudeEngine";
 
 let cached: PromptEngine | null = null;
 
+function claudeAllowed(): boolean {
+  return config.allowPaidProviders && !!config.anthropicApiKey;
+}
+
 export function getPromptEngine(): PromptEngine {
   if (cached) return cached;
 
@@ -19,13 +26,15 @@ export function getPromptEngine(): PromptEngine {
   if (explicit === "local") {
     cached = new LocalPromptEngine();
   } else if (explicit === "claude") {
-    if (!config.anthropicApiKey) {
-      logger.warn("PROMPT_ENGINE=claude but ANTHROPIC_API_KEY is not set — using local engine");
+    if (!claudeAllowed()) {
+      logger.warn(
+        "PROMPT_ENGINE=claude requested but paid providers are disabled or ANTHROPIC_API_KEY is missing — using local engine"
+      );
       cached = new LocalPromptEngine();
     } else {
       cached = new ClaudePromptEngine();
     }
-  } else if (!config.mockClaude && config.anthropicApiKey) {
+  } else if (!config.mockClaude && claudeAllowed()) {
     cached = new ClaudePromptEngine();
   } else {
     cached = new LocalPromptEngine();

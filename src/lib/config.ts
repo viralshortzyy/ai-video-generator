@@ -37,6 +37,12 @@ export const config = {
   mockVideoMode: bool("MOCK_VIDEO_MODE", true),
   mockClaude: bool("MOCK_CLAUDE", true),
 
+  // ── Cost-safety kill switch ────────────────────────────────────────────
+  // Default false: paid providers (Runway, Claude API) can NEVER be called,
+  // even if their keys are present. Set to true only when you deliberately
+  // want to spend money.
+  allowPaidProviders: bool("ALLOW_PAID_PROVIDERS", false),
+
   // --- Provider selection (free-first) -----------------------------------
   // "mock"   = simulated demo renderer (default, always free)
   // "free"   = real free/open-source backend (see FREE_BACKEND)

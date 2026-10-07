@@ -16,15 +16,23 @@ export class RealProviderStub implements VideoProvider {
   readonly id: string;
   private label: string;
   private envVar: string;
+  private disabledReason: string | null;
 
-  constructor(id: string, label: string, envVar: string) {
+  constructor(id: string, label: string, envVar: string, disabledReason?: string) {
     this.id = id;
     this.label = label;
     this.envVar = envVar;
+    this.disabledReason = disabledReason ?? null;
   }
 
   metadata(): ProviderMetadata {
-    return { id: this.id, displayName: this.label, supportsCancel: false, models: [] };
+    return {
+      id: this.id,
+      displayName: this.label,
+      supportsCancel: false,
+      models: [],
+      ...(this.disabledReason ? { notice: this.disabledReason } : {}),
+    };
   }
 
   private notConfigured(): Error {

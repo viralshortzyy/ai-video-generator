@@ -1,0 +1,8 @@
+# ZeroGPU-compatible stack (per https://huggingface.co/docs/hub/en/spaces-zerogpu)
+# Gradio 4+, PyTorch 2.8+, Python 3.10/3.12. `spaces` is preinstalled on ZeroGPU.
+torch>=2.8.0
+diffusers>=0.32.0
+transformers
+accelerate
+gradio>=4
+imageio[ffmpeg]
